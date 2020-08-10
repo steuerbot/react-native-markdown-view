@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {memo, useMemo} from 'react'
+import React from 'react'
 
 import {View} from 'react-native'
 
@@ -66,15 +66,22 @@ const DefaultRules : Rules = Object.freeze(mergeRules(
 
 const emptyObject = {};
 
-const MarkdownView = ({style, rules = emptyObject, onLinkPress, changeParsingResult, styles = emptyObject, children}: {
-  style?: Object,
-  rules?: Rules,
-  onLinkPress?: (string) => void,
-  changeParsingResult?: (any) => any,
-  styles?: Styles,
-  children: string,
-}) => {
-  const content = useMemo(() => {
+class MarkdownView extends React.PureComponent {
+
+  state = {
+    content: this.getContent()
+  }
+
+  getContent = () => {
+    const {rules = emptyObject, onLinkPress, changeParsingResult, styles = emptyObject, children}: {
+      style?: Object,
+      rules?: Rules,
+      onLinkPress?: (string) => void,
+      changeParsingResult?: (any) => any,
+      styles?: Styles,
+      children: string,
+    } = this.props;
+
     const mergedStyles = mergeStyles(DefaultStyles, styles);
     const mergedRules = mergeRules(SimpleMarkdown.defaultRules, simpleMarkdownRules(mergeRules(DefaultRules, rules), mergedStyles));
 
@@ -88,13 +95,19 @@ const MarkdownView = ({style, rules = emptyObject, onLinkPress, changeParsingRes
     const initialRenderState = {onLinkPress: onLinkPress};
 
     return render(ast, initialRenderState);
-  }, [styles, rules, onLinkPress, children, changeParsingResult]);
+  }
 
-  return (
-    <View style={style}>
-      {content}
-    </View>
-  )
+  componentDidUpdate(prevProps: Props, prevState: State, prevContext: *): * {
+    this.setState({content: this.getContent()});
+  }
+
+  render() {
+    return (
+      <View style={this.props.style}>
+        {this.state.content}
+      </View>
+    )
+  }
 }
 
-export default memo(MarkdownView);
+export default MarkdownView;
